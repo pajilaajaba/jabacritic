@@ -1,0 +1,17 @@
+{% extends "games/layout.html" %}
+
+{% block title %}
+   {{title}}
+{% endblock %}
+
+
+{% block content %}
+<h1> Главная страница </h1>
+<p> Опа тоже есть птички </p>
+<button> Нажми </button>
+{% for el in values%}
+    <p> {{el}} </p>
+{%endfor%}
+{% endblock %}
+
+
