@@ -1,12 +1,14 @@
 from django.core.management.base import BaseCommand
-from games.models import Genre, Company, Game
+from games.models import Genre, Company, Game, Platform
 from datetime import datetime
 import random
 
 class Command(BaseCommand):
-    help = 'Заполняет базу расширенным списком реальных игр'
+    help = 'Заполняет базу играми, жанрами, компаниями и ПЛАТФОРМАМИ'
 
     def handle(self, *args, **kwargs):
+        self.stdout.write('Начинаем заполнение базы данных...')
+
         # =========================================================================
         # ШАГ 1: СОЗДАНИЕ ЖАНРОВ
         # =========================================================================
@@ -16,86 +18,119 @@ class Command(BaseCommand):
             'Fighting', 'Platformer', 'MMO', 'Indie', 'Open World',
             'Metroidvania', 'Survival', 'Roguelike', 'Visual Novel',
             'Survival Horror', 'Stealth', 'First-Person', 'Psychological',
-            'Grand Strategy', 'Sandbox', 'Battle Royale', 'Cooperative'
+            'Grand Strategy', 'Sandbox', 'Battle Royale', 'Cooperative',
+            'Turn-Based', 'Detective', 'MOBA', 'City-Builder', 'Historical',
+            'Walking Simulator', 'Drama'
         ]
         
         genres = {}
         for genre_name in genres_data:
             genre, created = Genre.objects.get_or_create(name=genre_name)
             genres[genre_name] = genre
-            self.stdout.write(f'Создан жанр: {genre_name}')
+
+        self.stdout.write(self.style.SUCCESS(f'✅ Жанры обработаны ({len(genres)} шт.)'))
 
         # =========================================================================
-        # ШАГ 2: СОЗДАНИЕ КОМПАНИЙ (РАЗРАБОТЧИКИ И ИЗДАТЕЛИ)
+        # ШАГ 2: СОЗДАНИЕ КОМПАНИЙ
         # =========================================================================
         companies_data = [
-            # (name, description, is_developer, is_publisher)
-            ('CD Projekt Red', 'Польский разработчик, известный по серии Ведьмак', True, False),
-            ('CD Projekt', 'Польский издатель', False, True),
-            ('Bethesda Game Studios', 'Американский разработчик The Elder Scrolls', True, False),
-            ('Bethesda Softworks', 'Американский издатель', False, True),
-            ('Rockstar Games', 'Разработчик GTA и Red Dead', True, True),
-            ('Ubisoft', 'Французский разработчик и издатель', True, True),
-            ('Electronic Arts', 'Американский издатель', False, True),
-            ('BioWare', 'Канадский разработчик RPG', True, False),
-            ('Nintendo', 'Японский разработчик и издатель', True, True),
-            ('Sony Interactive Entertainment', 'Японский издатель', False, True),
-            ('FromSoftware', 'Японский разработчик Dark Souls', True, False),
-            ('Valve Corporation', 'Американский разработчик и издатель', True, True),
-            ('Blizzard Entertainment', 'Американский разработчик', True, False),
-            ('Square Enix', 'Японский разработчик и издатель', True, True),
-            ('Capcom', 'Японский разработчик Resident Evil', True, False),
-            
-            # Новые компании для добавленных игр
-            ('Team Cherry', 'Австралийский инди-разработчик Hollow Knight', True, True),
-            ('Larian Studios', 'Бельгийский разработчик Baldur\'s Gate 3', True, True),
-            ('Mojang Studios', 'Шведский разработчик Minecraft', True, False),
-            ('Xbox Game Studios', 'Американский издатель', False, True),
-            ('Bandai Namco', 'Японский издатель', False, True),
-            ('Devolver Digital', 'Американский издатель инди-игр', False, True),
-            ('Annapurna Interactive', 'Американский издатель арт-игр', False, True),
-            
-            # Компании для новых игр
-            ('ZA/UM', 'Эстонская студия, разработчик Disco Elysium', True, True),
-            ('Ice-Pick Lodge', 'Российский разработчик Pathologic', True, False),
-            ('tinyBuild', 'Издатель инди-игр', False, True),
-            ('11 bit studios', 'Польский разработчик и издатель Frostpunk', True, True),
-            ('Mike Klubnika', 'Независимый разработчик Buckshot Roulette', True, True),
-            ('Acid Wizard Studio', 'Польский инди-разработчик Darkwood', True, True),
-            ('Arkane Studios', 'Французский разработчик Dishonored', True, False),
-            ('Paradox Development Studio', 'Шведский разработчик стратегий', True, False),
-            ('Paradox Interactive', 'Шведский издатель стратегических игр', False, True),
-            ('Endnight Games', 'Канадский разработчик The Forest', True, True),
-            ('Dontnod Entertainment', 'Французский разработчик Life is Strange', True, False),
-            ('Nikita Kryukov', 'Российский инди-разработчик', True, True),
-            ('Nolla Games', 'Финский разработчик Noita', True, True),
-            ('Overkill Software', 'Шведский разработчик Payday', True, False),
-            ('505 Games', 'Издатель Payday 2', False, True),
-            ('PUBG Corporation', 'Корейский разработчик PUBG', True, False),
-            ('Krafton', 'Корейский издатель PUBG', False, True),
-            ('Rare', 'Британский разработчик Sea of Thieves', True, False),
-            ('Firaxis Games', 'Американский разработчик Civilization', True, False),
-            ('2K Games', 'Американский издатель Civilization', False, True),
-            ('ConcernedApe', 'Американский разработчик Stardew Valley', True, True),
-            ('Re-Logic', 'Американский разработчик Terraria', True, True),
-            ('Giant Sparrow', 'Американский разработчик What Remains of Edith Finch', True, False),
+            # (name, description)
+            ('CD Projekt Red', 'Польский разработчик, Ведьмак и Cyberpunk'),
+            ('CD Projekt', 'Польский издатель'),
+            ('Bethesda Game Studios', 'Создатели TES и Fallout'),
+            ('Bethesda Softworks', 'Издатель Bethesda'),
+            ('Rockstar Games', 'Создатели GTA и RDR'),
+            ('Ubisoft', 'Крупный французский издатель'),
+            ('Electronic Arts', 'EA Sports и The Sims'),
+            ('BioWare', 'Мастера RPG (Mass Effect, Dragon Age)'),
+            ('Nintendo', 'Марио, Зельда и консоли'),
+            ('Sony Interactive Entertainment', 'PlayStation Studios'),
+            ('FromSoftware', 'Создатели жанра Souls-like'),
+            ('Valve Corporation', 'Steam, Half-Life, Dota 2'),
+            ('Blizzard Entertainment', 'Warcraft, Diablo, Overwatch'),
+            ('Square Enix', 'Final Fantasy и JRPG'),
+            ('Capcom', 'Resident Evil, Monster Hunter'),
+            ('Team Cherry', 'Создатели Hollow Knight'),
+            ('Larian Studios', 'Мастера CRPG, Baldur\'s Gate 3'),
+            ('Mojang Studios', 'Создатели Minecraft'),
+            ('Xbox Game Studios', 'Издатель Microsoft'),
+            ('Bandai Namco', 'Японский издатель Dark Souls/Elden Ring'),
+            ('Devolver Digital', 'Издатель крутых инди-игр'),
+            ('Annapurna Interactive', 'Издатель атмосферных инди'),
+            ('ZA/UM', 'Создатели Disco Elysium'),
+            ('Ice-Pick Lodge', 'Российский геймдев, Мор (Утопия)'),
+            ('tinyBuild', 'Издатель Hello Neighbor'),
+            ('11 bit studios', 'Frostpunk и This War of Mine'),
+            ('Mike Klubnika', 'Инди-разработчик'),
+            ('Acid Wizard Studio', 'Создатели Darkwood'),
+            ('Arkane Studios', 'Dishonored, Prey'),
+            ('Paradox Development Studio', 'Гранд-стратегии'),
+            ('Paradox Interactive', 'Издатель стратегий'),
+            ('Endnight Games', 'The Forest'),
+            ('Dontnod Entertainment', 'Life is Strange'),
+            ('Nikita Kryukov', 'Инди-автор Milk outside a bag...'),
+            ('Nolla Games', 'Создатели Noita'),
+            ('Overkill Software', 'PayDay'),
+            ('505 Games', 'Издатель'),
+            ('PUBG Corporation', 'Battle Royale'),
+            ('Krafton', 'Холдинг PUBG'),
+            ('Rare', 'Sea of Thieves'),
+            ('Firaxis Games', 'Civilization, XCOM'),
+            ('2K Games', 'Издатель Bioshock, Civ, NBA'),
+            ('ConcernedApe', 'Один человек - создатель Stardew Valley'),
+            ('Re-Logic', 'Создатели Terraria'),
+            ('Giant Sparrow', 'What Remains of Edith Finch'),
+            ('Maddy Makes Games', 'Celeste'),
+            ('Supergiant Games', 'Hades, Bastion'),
+            ('Toby Fox', 'Undertale'),
+            ('Atlus', 'Persona, SMT'),
+            ('id Software', 'Doom, Quake'),
+            ('Naughty Dog', 'Last of Us, Uncharted'),
+            ('Santa Monica Studio', 'God of War'),
+            ('Maxis', 'The Sims'),
+            ('Studio MDHR', 'Cuphead'),
+            ('Motion Twin', 'Dead Cells'),
+            ('Yacht Club Games', 'Shovel Knight'),
         ]
 
         companies = {}
-        for name, description, is_dev, is_pub in companies_data:
+        for name, description in companies_data:
             company, created = Company.objects.get_or_create(
                 name=name,
                 defaults={'description': description}
             )
             companies[name] = company
-            self.stdout.write(f'Создана компания: {name}')
+            
+        self.stdout.write(self.style.SUCCESS(f'✅ Компании обработаны ({len(companies)} шт.)'))
 
         # =========================================================================
-        # ШАГ 3: СОЗДАНИЕ ИГР
+        # ШАГ 3: СОЗДАНИЕ ПЛАТФОРМ (НОВОЕ!)
+        # =========================================================================
+        platforms_data = [
+            ('PC', 'Персональный компьютер (Windows, Linux, Mac)'),
+            ('PlayStation 5', 'Консоль Sony текущего поколения'),
+            ('PlayStation 4', 'Консоль Sony прошлого поколения'),
+            ('Xbox Series X/S', 'Консоль Microsoft текущего поколения'),
+            ('Xbox One', 'Консоль Microsoft прошлого поколения'),
+            ('Nintendo Switch', 'Гибридная консоль Nintendo'),
+        ]
+
+        platforms = {}
+        for name, desc in platforms_data:
+            platform, created = Platform.objects.get_or_create(
+                name=name,
+                defaults={'description': desc}
+            )
+            platforms[name] = platform
+            self.stdout.write(f'   + Платформа: {name}')
+
+        self.stdout.write(self.style.SUCCESS('✅ Платформы созданы'))
+
+        # =========================================================================
+        # ШАГ 4: СПИСОК ИГР
         # =========================================================================
         real_games = [
             # (title, developer, publisher, release_year, genres, description)
-            
             ('The Witcher 3: Wild Hunt', 'CD Projekt Red', 'CD Projekt', 2015, ['RPG', 'Open World', 'Adventure'], 'Эпическая RPG о ведьмаке Геральте'),
             ('Cyberpunk 2077', 'CD Projekt Red', 'CD Projekt', 2020, ['RPG', 'Open World', 'Shooter'], 'Научно-фантастическая RPG'),
             ('The Elder Scrolls V: Skyrim', 'Bethesda Game Studios', 'Bethesda Softworks', 2011, ['RPG', 'Open World'], 'Легендарная RPG с открытым миром'),
@@ -137,54 +172,36 @@ class Command(BaseCommand):
             ('Dishonored 2', 'Arkane Studios', 'Bethesda Softworks', 2016, ['Action', 'Stealth', 'Adventure'], 'Продолжение культового стелс-экшена'),
             ('Hearts of Iron IV', 'Paradox Development Studio', 'Paradox Interactive', 2016, ['Strategy', 'Grand Strategy', 'Historical'], 'Гранд-стратегия о Второй мировой войне'),
             ('Europa Universalis IV', 'Paradox Development Studio', 'Paradox Interactive', 2013, ['Strategy', 'Grand Strategy', 'Historical'], 'Гранд-стратегия о мировой истории с 1444 по 1821 годы'),
-            ('Europa Universalis V', 'Paradox Development Studio', 'Paradox Interactive', 2024, ['Strategy', 'Grand Strategy', 'Historical'], 'Новейшая часть серии гранд-стратегий'),
             ('The Forest', 'Endnight Games', 'Endnight Games', 2018, ['Survival', 'Horror', 'Adventure'], 'Хоррор на выживание на острове с каннибалами'),
             ('Life is Strange', 'Dontnod Entertainment', 'Square Enix', 2015, ['Adventure', 'Visual Novel', 'Drama'], 'Эмоциональная приключенческая игра о путешествиях во времени'),
-            ('Milk inside a bag of milk inside a bag of milk', 'Nikita Kryukov', 'Nikita Kryukov', 2020, ['Visual Novel', 'Psychological', 'Indie'], 'Сюрреалистическая визуальная новелла о психическом здоровье'),
-            ('Milk outside a bag of milk outside a bag of milk', 'Nikita Kryukov', 'Nikita Kryukov', 2021, ['Visual Novel', 'Psychological', 'Indie'], 'Продолжение сюрреалистической визуальной новеллы'),
             ('Noita', 'Nolla Games', 'Nolla Games', 2020, ['Roguelike', 'Action', 'Indie'], 'Рогалик с физикой на основе пикселей и магией'),
             ('PayDay 2', 'Overkill Software', '505 Games', 2013, ['Shooter', 'Action', 'Cooperative'], 'Кооперативный шутер о ограблениях'),
-            ('PEAK', 'Unknown Developer', 'Unknown Publisher', 2021, ['Platformer', 'Indie', 'Adventure'], 'Инди-платформер о восхождении на гору'),
             ('Portal 2', 'Valve Corporation', 'Valve Corporation', 2011, ['Puzzle', 'Platformer', 'First-Person'], 'Культовая головоломка от Valve с порталами'),
             ('PUBG: Battlegrounds', 'PUBG Corporation', 'Krafton', 2017, ['Shooter', 'Battle Royale', 'Action'], 'Одна из первых и самых популярных игр в жанре королевской битвы'),
             ('Sea of Thieves', 'Rare', 'Xbox Game Studios', 2018, ['Adventure', 'Action', 'Open World'], 'Многопользовательское пиратское приключение в открытом мире'),
             ('Sid Meier\'s Civilization V', 'Firaxis Games', '2K Games', 2010, ['Strategy', 'Turn-Based', 'Historical'], 'Культовая пошаговая стратегия о развитии цивилизации'),
-            ('Sid Meier\'s Civilization VI', 'Firaxis Games', '2K Games', 2016, ['Strategy', 'Turn-Based', 'Historical'], 'Продолжение легендарной серии стратегий'),
-            ('Sid Meier\'s Civilization VII', 'Firaxis Games', '2K Games', 2025, ['Strategy', 'Turn-Based', 'Historical'], 'Предстоящая часть культовой серии стратегий'),
             ('Terraria', 'Re-Logic', 'Re-Logic', 2011, ['Sandbox', 'Adventure', 'Action'], '2D песочница с исследованием, крафтом и сражениями'),
-            ('Victoria 2', 'Paradox Development Studio', 'Paradox Interactive', 2010, ['Strategy', 'Grand Strategy', 'Historical'], 'Гранд-стратегия о викторианской эпохе'),
             ('Victoria 3', 'Paradox Development Studio', 'Paradox Interactive', 2022, ['Strategy', 'Grand Strategy', 'Historical'], 'Современная гранд-стратегия о экономике и политике'),
             ('What Remains of Edith Finch', 'Giant Sparrow', 'Annapurna Interactive', 2017, ['Adventure', 'Walking Simulator', 'Drama'], 'Эмоциональная история о семье Финч и их проклятии'),
         ]
 
         # =========================================================================
-        # ШАГ 4: СОЗДАНИЕ ОБЪЕКТОВ ИГР В БАЗЕ ДАННЫХ
+        # ШАГ 5: СОЗДАНИЕ ИГР И СВЯЗЫВАНИЕ
         # =========================================================================
         for title, dev_name, pub_name, year, genre_names, description in real_games:
-            # Находим или создаём разработчика
+            # 5.1 Компании
             developer = companies.get(dev_name)
-            if not developer and dev_name not in ['Unknown Developer', 'Unknown Publisher']:
-                developer, created = Company.objects.get_or_create(
-                    name=dev_name,
-                    defaults={'description': f'Разработчик игры {title}'}
-                )
-                companies[dev_name] = developer
-            
-            # Находим или создаём издателя
             publisher = companies.get(pub_name)
-            if not publisher and pub_name not in ['Unknown Developer', 'Unknown Publisher']:
-                publisher, created = Company.objects.get_or_create(
-                    name=pub_name,
-                    defaults={'description': f'Издатель игры {title}'}
-                )
+            
+            # Если компаний нет в словаре (на всякий случай, если кто-то добавил игру но не добавил компанию в список выше)
+            if not developer:
+                developer, _ = Company.objects.get_or_create(name=dev_name, defaults={'description': 'Разработчик'})
+                companies[dev_name] = developer
+            if not publisher:
+                publisher, _ = Company.objects.get_or_create(name=pub_name, defaults={'description': 'Издатель'})
                 companies[pub_name] = publisher
 
-            # Пропускаем игру если нет разработчика или издателя
-            if not developer or not publisher:
-                self.stdout.write(f'❌ Пропущена игра {title} - компания не найдена')
-                continue
-
-            # Создаём или находим игру
+            # 5.2 Сама Игра
             game, created = Game.objects.get_or_create(
                 title=title,
                 defaults={
@@ -194,35 +211,61 @@ class Command(BaseCommand):
                     'release_date': datetime(year, random.randint(1, 12), random.randint(1, 28))
                 }
             )
-            
-            # Добавляем жанры к игре
-            game_genres = []
-            for genre_name in genre_names:
-                if genre_name in genres:
-                    game_genres.append(genres[genre_name])
-                else:
-                    # Создаём жанр если его нет
-                    genre, created = Genre.objects.get_or_create(name=genre_name)
-                    genres[genre_name] = genre
-                    game_genres.append(genre)
-            
-            game.genres.set(game_genres)
-            
-            status = "✅ Создана" if created else "ℹ️ Уже существует"
-            self.stdout.write(f'{status} игра: {title}')
 
-        # =========================================================================
-        # ШАГ 5: ВЫВОД СТАТИСТИКИ
-        # =========================================================================
-        self.stdout.write(
-            self.style.SUCCESS('\n🎮 БАЗА ДАННЫХ УСПЕШНО ЗАПОЛНЕНА!')
-        )
-        
-        self.stdout.write(f'📊 Статистика:')
-        self.stdout.write(f'   • Игр: {Game.objects.count()}')
-        self.stdout.write(f'   • Компаний: {Company.objects.count()}')
-        self.stdout.write(f'   • Жанров: {Genre.objects.count()}')
-        
-        self.stdout.write(
-            self.style.SUCCESS('\n✨ Теперь можно запускать сервер и проверять данные в админке!')
-        )
+            # 5.3 Жанры
+            game_genres_objs = []
+            for g_name in genre_names:
+                # Если жанра вдруг нет, создадим
+                if g_name not in genres:
+                    g, _ = Genre.objects.get_or_create(name=g_name)
+                    genres[g_name] = g
+                game_genres_objs.append(genres[g_name])
+            
+            game.genres.set(game_genres_objs)
+
+            # 5.4 ПЛАТФОРМЫ (УМНАЯ ЛОГИКА)
+            game_platforms = []
+
+            # Эксклюзивы Nintendo
+            if pub_name == 'Nintendo':
+                game_platforms.append(platforms['Nintendo Switch'])
+            
+            # Эксклюзивы Sony (PlayStation)
+            elif pub_name == 'Sony Interactive Entertainment' or dev_name == 'Naughty Dog' or dev_name == 'Santa Monica Studio':
+                if year >= 2020:
+                    game_platforms.append(platforms['PlayStation 5'])
+                game_platforms.append(platforms['PlayStation 4'])
+                # Некоторые игры Sony вышли на ПК позже, добавим ПК
+                if title in ['God of War', 'Horizon Zero Dawn', 'The Last of Us Part I', 'Uncharted 4: A Thief\'s End']:
+                    game_platforms.append(platforms['PC'])
+            
+            # Остальные игры (обычно мультиплатформа)
+            else:
+                game_platforms.append(platforms['PC']) # Почти всё есть на ПК
+                
+                # Игры Xbox Game Studios есть на Xbox
+                if pub_name == 'Xbox Game Studios' or dev_name == 'Rare' or dev_name == 'Bethesda Game Studios':
+                    game_platforms.append(platforms['Xbox Series X/S'])
+                    game_platforms.append(platforms['Xbox One'])
+
+                # Обычная мультиплатформа (Ведьмак, ГТА и т.д.)
+                else:
+                    if year >= 2020:
+                        game_platforms.append(platforms['PlayStation 5'])
+                        game_platforms.append(platforms['Xbox Series X/S'])
+                    
+                    if year < 2023: # Старые консоли еще живы для игр до 2023
+                        game_platforms.append(platforms['PlayStation 4'])
+                        game_platforms.append(platforms['Xbox One'])
+                    
+                    # Инди игры часто есть на Свиче
+                    if 'Indie' in genre_names:
+                        game_platforms.append(platforms['Nintendo Switch'])
+
+            # Применяем платформы
+            game.platforms.set(game_platforms)
+            
+            status = "✅ Создана" if created else "🆗 Обновлена"
+            self.stdout.write(f'{status}: {title} [{", ".join([p.name for p in game_platforms])}]')
+
+        self.stdout.write(self.style.SUCCESS('\n✨ БАЗА ДАННЫХ УСПЕШНО ЗАПОЛНЕНА!'))

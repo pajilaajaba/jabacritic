@@ -1,2 +1,2 @@
-# JABACRITIC
+# jabacritiv
 PROJECT FOR БАУМАНКА по проге
