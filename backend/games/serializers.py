@@ -59,14 +59,14 @@ class GameSerializer(serializers.ModelSerializer):
     )
     
     review_count = serializers.SerializerMethodField()
-    average_rating = serializers.SerializerMethodField()
     
     class Meta:
         model = Game
         fields = [
-            'id', 'title', 'description', 'developer', 'publisher', 
+            'id', 'title', 'description','image',
+            'developer', 'publisher', 
             'release_date', 'created_at', 'genres', 'platforms',
-            'developer_id', 'publisher_id', 'genre_ids', 'platform_ids', 
+            'developer_id', 'publisher_id', 'genre_ids', 'platform_ids',     
             'review_count', 'average_rating'
         ]
         read_only_fields = ['id', 'created_at', 'review_count', 'average_rating']
@@ -74,8 +74,6 @@ class GameSerializer(serializers.ModelSerializer):
     def get_review_count(self, obj):
         return obj.reviews.count() if hasattr(obj, 'reviews') else 0
     
-    def get_average_rating(self, obj):
-        return None
     
     # Валидация
     def validate_title(self, value):
@@ -103,7 +101,7 @@ class GameListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Game
         fields = [
-            'id', 'title', 'release_date', 
+            'id', 'title', 'image', 'release_date', 'average_rating',  
             'developer_name', 'publisher_name',
             'genre_names', 'platform_names'
         ]
