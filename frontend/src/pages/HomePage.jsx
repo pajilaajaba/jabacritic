@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../api/axios'
 import { Link } from 'react-router-dom';
 
 const HomePage = () => {
     const [games, setGames] = useState([]);
     useEffect(() => {
-        axios.get('/api/v1/games/')
+        api.get('/games/')
             .then(response => {
                 console.log("Данные от Django:", response.data);
                 

@@ -1,5 +1,6 @@
 import React, { useEffect, useState} from 'react';
 import axios from 'axios';
+import api from '../api/axios'
 import { useParams } from 'react-router-dom';
 
 
@@ -8,7 +9,7 @@ const GamePage = () => {
     const [game, setGame] = useState(null);
 
     useEffect(()=>{
-        axios.get(`/api/v1/games/${id}/`)
+        api.get(`/games/${id}/`)
         .then(response => setGame(response.data))
         .catch(error => {console.error("ошибка при получении игры"), error});
     }, [id]);
