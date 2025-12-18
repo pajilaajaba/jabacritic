@@ -4,6 +4,7 @@ import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import GamePage from './pages/GamePage';
+import CompanyPage from './pages/CompanyPage';
 import { AuthContext} from './context/AuthContext';
 
 function App() {
@@ -40,6 +41,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/game/:id" element={<GamePage />} />
+        <Route path="/company/:id" element={<CompanyPage/>} />
       </Routes>
     </BrowserRouter>
   );

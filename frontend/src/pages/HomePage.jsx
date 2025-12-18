@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import api from '../api/axios'
 import { Link } from 'react-router-dom';
 
+import GameCard from '../components/GameCard';
+
 const HomePage = () => {
     const [games, setGames] = useState([]);
     useEffect(() => {
@@ -30,32 +32,7 @@ const HomePage = () => {
             
             {/* Сетка игр */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '20px' }}>
-                
-                {games.map(game => (
-                    <div key={game.id} style={{ border: '1px solid grey', borderRadius: '10px', overflow: 'hidden' }}>
-                        
-                        {/* 1. КАРТИНКА */}
-                        {/* Если game.image есть, показываем его. Если нет - цветной квадрат */}
-                        {game.image ? (
-                            <img 
-                                src={game.image} 
-                                alt={game.title} 
-                                style={{ width: '100%', height: '150px', objectFit: 'cover' }} 
-                            />
-                        ) : (
-                            <div style={{ width: '100%', height: '150px', background: '#ccc' }}>Нет фото</div>
-                        )}
-
-                        {/* 2. ТЕКСТ */}
-                        <div style={{ padding: '10px' }}>
-                            <h3> 
-                                <Link to={`/game/${game.id}`}> {game.title} </Link> 
-                            </h3>
-                            <p>Рейтинг: {game.average_rating || 0}</p>
-                        </div>
-
-                    </div>
-                ))}
+                {games.map(game => ( <GameCard game={game} key={game.id} />))}
             </div>
         </div>
     );

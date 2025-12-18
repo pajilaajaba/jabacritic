@@ -16,6 +16,7 @@ class ReviewReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = '__all__'
+
         
 #Сериализатор для добавления/обновления данныъ - PUT, POST
 class ReviewCreateSerializer(serializers.ModelSerializer):
