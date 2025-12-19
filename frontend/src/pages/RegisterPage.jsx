@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 const RegisterPage = () => {
     const [username, setUsername] = useState('');
@@ -13,7 +14,7 @@ const RegisterPage = () => {
     const handleSubmit = async (event) => { //чтобы страница не перезугржаалсь каждый раз
         event.preventDefault();
 
-        if (password !== passwordConfirm) {alert("Пароли не совпадают"); return}
+        if (password !== passwordConfirm) {toast.error("Пароли не совпадают"); return}
 
         try {
             await axios.post('/api/auth/register/', {//отправка данных по адресу
@@ -23,7 +24,7 @@ const RegisterPage = () => {
                 "password2": passwordConfirm
             })
 
-            alert("Успешно! Теперь войдите.");
+            toast.success("Успешно! Теперь войдите.");
             navigate('/login');
         } catch (error) {
             console.error(error);
@@ -38,17 +39,17 @@ const RegisterPage = () => {
                 
                 // проверяем конкретные поля 
                 if (serverErrors.email) {
-                    alert(`Ошибка Email: ${serverErrors.email[0]}`);
+                    toast.error(`Ошибка Email: ${serverErrors.email[0]}`);
                 } else if (serverErrors.username) {
-                    alert(`Ошибка Имя пользователя: ${serverErrors.username[0]}`);
+                    toast.error(`Ошибка Имя пользователя: ${serverErrors.username[0]}`);
                 } else if (serverErrors.password) {
-                    alert(`Ошибка Пароль: ${serverErrors.password[0]}`);
+                    toast.error(`Ошибка Пароль: ${serverErrors.password[0]}`);
                 } else {
                     // если ошибка общая или непонятная - глупая
-                    alert("Ошибка регистрации: " + JSON.stringify(serverErrors));
+                    toast.error("Ошибка регистрации: " + JSON.stringify(serverErrors));
                 }
             } else {
-                alert("Произошла неизвестная ошибка сети");
+                toast.error("Произошла неизвестная ошибка сети");
             }
         }
     }

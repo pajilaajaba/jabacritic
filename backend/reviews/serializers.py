@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from .models import Review
-from games.serializers import GameSerializer, PlatformSerializer
+from games.serializers import GameSerializer, PlatformSerializer, GameListSerializer
 from users.serializers import UserSerializer
 
 
@@ -16,7 +16,16 @@ class ReviewReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = '__all__'
-
+        
+        
+class SimpleReviewSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    rating = serializers.IntegerField()
+    description = serializers.CharField()
+    created_at = serializers.DateTimeField()
+    # Чтобы показать название игры, используем GameListSerializer или просто название
+    # Вариант с полным объектом игры:
+    game = GameListSerializer(read_only=True)          
         
 #Сериализатор для добавления/обновления данныъ - PUT, POST
 class ReviewCreateSerializer(serializers.ModelSerializer):

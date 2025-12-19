@@ -2,13 +2,18 @@ import React, { useEffect, useState} from 'react';
 import axios from 'axios';
 import api from '../api/axios'
 import { useParams } from 'react-router-dom';
-import ReviewForm from '../components/ReviewFrom';
+import ReviewForm from '../components/ReviewForm';
 import { Link } from 'react-router-dom';
+import ReviewCard from '../components/ReviewCard';
+import toast from 'react-hot-toast';
 
 const GamePage = () => {
     const {id} = useParams();
     const [game, setGame] = useState(null);
     const [reviews, setReviews] = useState([]);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isLike, setIsLike] = useState(false);
+
 
     const fetchReviews = () => { //функция для получения отзывов
         api.get(`/reviews/?game=${id}`) 
@@ -24,11 +29,27 @@ const GamePage = () => {
 
     useEffect(()=>{
         api.get(`/games/${id}/`)
-        .then(response => setGame(response.data))
+        .then(response => {
+            setGame(response.data);
+            setIsLike(response.data.is_favorited); 
+        })
         .catch(error => {console.error("ошибка при получении игры"), error});
-
         fetchReviews();
     }, [id]);
+
+    const handleLike =  (() => {
+
+        const previousState = isLike;
+        setIsLike(!isLike);
+
+       api.post(`/games/${id}/like/`)
+       .then(resp => {setIsLike(resp.data.status)})
+        .catch(err => {
+        console.error(err);
+        setIsLike(previousState);
+        toast.error("Не удалось поставить лайк. Войдите в аккаунт.");
+        });
+    })
     
 
     if (!game) {
@@ -76,9 +97,20 @@ const GamePage = () => {
                 <p className="text-gray-700 text-lg leading-relaxed">
                     {game.description}
                 </p>
+                <button 
+                    onClick={handleLike}
+                    className={`mt-6 px-6 py-2 rounded transition border ${
+                        isLike 
+                        ? "bg-red-50 text-red-600 border-red-200" // Активный лайк
+                        : "bg-gray-50 text-gray-500 border-gray-200" // Нет лайка
+                    }`}
+                >
+                    {isLike ? "❤️ В любимых" : "🤍 Добавить в любимые"}
+                </button>
 
                 {/* Кнопка "Оценить" (открывает модалку) */}
-                <button className="mt-6 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">
+                <button onClick={() => setIsModalOpen(true)}
+                className="mt-6 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">
                     Написать отзыв
                 </button>
             </div>
@@ -94,38 +126,44 @@ const GamePage = () => {
                 {/* Колонка Критиков */}
                   <div>
                      <h3 className="text-xl font-bold text-purple-700 mb-4">Отзывы Критиков</h3>
-                     {criticReviews.length > 0 ? criticReviews.map(review => (
-                          <div key={review.id} className="bg-purple-50 p-4 rounded mb-4 border-l-4 border-purple-500 shadow-sm">
-                              <div className="flex justify-between items-center mb-2">
-                                 <span className="font-bold text-purple-900">{review.user.username}</span>
-                                  <span className="bg-purple-200 text-purple-800 px-2 py-1 rounded font-bold text-sm">
-                                      {review.rating}
-                                  </span>
-                              </div>
-                             <p className="text-gray-700">{review.description}</p>
-                        </div>
-                    )) : <p className="text-gray-500">Критики пока молчат...</p>}
+                     {criticReviews.length > 0 ? criticReviews.map(review => <ReviewCard key={review.id} review={review} type="game" />
+                    ) : <p className="text-gray-500">Критики пока молчат...</p>}
                 </div>
 
                 {/* Колонка Игроков */}
                 <div>
                      <h3 className="text-xl font-bold text-blue-700 mb-4">Отзывы Игроков</h3>
                      {userReviews.length > 0 ? userReviews.map(review => (
-                         <div key={review.id} className="bg-blue-50 p-4 rounded mb-4 border-l-4 border-blue-500 shadow-sm">
-                               <div className="flex justify-between items-center mb-2">
-                                 <span className="font-bold text-blue-900">{review.user.username}</span>
-                                  <span className="bg-blue-200 text-blue-800 px-2 py-1 rounded font-bold text-sm">
-                                      {review.rating}
-                                 </span>
-                             </div>
-                             <p className="text-gray-700">{review.description}</p>
-                         </div>
+                         <ReviewCard key={review.id} review={review} type="game" />
                     )) : <p className="text-gray-500">Отзывов пока нет.</p>}
                 </div>
 
             </div>
         </div>
 
+    {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+            {/* Белое окно */}
+            <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md relative">
+                
+                {/* Кнопка Закрыть (Крестик) */}
+                <button 
+                    onClick={() => setIsModalOpen(false)}
+                    className="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-2xl"
+                >
+                    &times;
+                </button>
+
+                {/* Форма для отзывов */}
+                <ReviewForm 
+                    gameId={id} 
+                    onReviewSuccess={() => {
+                        fetchReviews();      // обновляем список
+                        setIsModalOpen(false); // закрываем окно
+                    }} 
+                />
+            </div>
+        </div>)}
     </div>
     )
 };

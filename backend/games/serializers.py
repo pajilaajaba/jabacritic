@@ -27,6 +27,8 @@ class GameSerializer(serializers.ModelSerializer):
     genres = GenreSerializer(many=True, read_only=True)
     platforms = PlatformSerializer(many=True, read_only=True)
     
+    average_rating = serializers.FloatField(read_only=True)
+    
     # Поля для записи ID
     developer_id = serializers.PrimaryKeyRelatedField(
         queryset=Company.objects.all(),
@@ -59,7 +61,7 @@ class GameSerializer(serializers.ModelSerializer):
     )
     
     review_count = serializers.SerializerMethodField()
-    
+    is_favorited = serializers.SerializerMethodField()
     class Meta:
         model = Game
         fields = [
@@ -67,13 +69,19 @@ class GameSerializer(serializers.ModelSerializer):
             'developer', 'publisher', 
             'release_date', 'created_at', 'genres', 'platforms',
             'developer_id', 'publisher_id', 'genre_ids', 'platform_ids',     
-            'review_count', 'average_rating'
+            'review_count', 'average_rating', 'is_favorited'
         ]
         read_only_fields = ['id', 'created_at', 'review_count', 'average_rating']
         
     def get_review_count(self, obj):
         return obj.reviews.count() if hasattr(obj, 'reviews') else 0
     
+
+    def get_is_favorited(self, obj):
+        user = self.context.get('request').user
+        if user.is_authenticated:
+            return user in obj.favorites.all()
+        return False
     
     # Валидация
     def validate_title(self, value):
@@ -97,6 +105,8 @@ class GameListSerializer(serializers.ModelSerializer):
     publisher_name = serializers.CharField(source='publisher.name', read_only=True)
     genre_names = serializers.SerializerMethodField()
     platform_names = serializers.SerializerMethodField()
+    
+    average_rating = serializers.FloatField(read_only=True)
     
     class Meta:
         model = Game

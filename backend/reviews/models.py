@@ -11,7 +11,8 @@ class Review(models.Model):
     )
     user = models.ForeignKey(
         User,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name='reviews'
     )
     platform = models.ForeignKey(
         Platform,

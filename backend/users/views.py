@@ -39,6 +39,7 @@ class UserView(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     
     @action(detail=False, methods=['get', 'patch'], permission_classes = [permissions.IsAuthenticated]) 
     def me(self, request): #self.action = me - всегда, он находит этот url если мы введем .../me 

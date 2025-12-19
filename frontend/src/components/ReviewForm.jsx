@@ -2,9 +2,10 @@ import React, { useState, useContext } from 'react';
 import api from '../api/axios'; 
 import { AuthContext } from '../context/AuthContext'; // импортируем Контекст
 import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 // используем пропс gameId
-const ReviewForm = ({ gameId }) => {
+const ReviewForm = ({ gameId, onReviewSuccess }) => {
     // Исправлено: Достаем isAuthenticated через хук
     const { isAuthenticated } = useContext(AuthContext);
 
@@ -21,11 +22,12 @@ const ReviewForm = ({ gameId }) => {
                 description: description,
                 platform: platform 
             });
-            alert("Отзыв успешно отправлен!");
+            toast.success("Отзыв успешно опубликован! 🎉");
+            if (onReviewSuccess) {onReviewSuccess();}
             setDescription(''); // Очищаем поле после отправки
         } catch (error) {
             console.error('Ошибка при передаче данных', error);
-            alert("Ошибка! Возможно, вы уже оставляли отзыв.");
+            toast.error("Ошибка! Возможно, вы уже оставляли отзыв.");
         }
     };
 

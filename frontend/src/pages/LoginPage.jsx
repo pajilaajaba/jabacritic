@@ -2,6 +2,7 @@ import React, { useContext, useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import toast from 'react-hot-toast';
 
 const LoginPage = () => {
     const [username, setUsername] = useState('');
@@ -19,7 +20,7 @@ const LoginPage = () => {
                 "password": password,
             })
             login(response.data.access, response.data.refresh); //вызов функции логик для занесения этого в loacalstorage
-            alert("Вы успешно вошли на JABACRITIC!");
+            toast.success("Вы успешно вошли на JABACRITIC!");
             navigate('/');
         } catch (error) {
             console.error(error);
@@ -28,17 +29,17 @@ const LoginPage = () => {
                 // превращаем объект ошибок в строку
                 const serverErrors = error.response.data;
                 if (serverErrors.username) {
-                    alert(`Ошибка Имя пользователя: ${serverErrors.username[0]}`);
+                    toast.error(`Ошибка Имя пользователя: ${serverErrors.username[0]}`);
                 } else if (serverErrors.password) {
-                    alert(`Ошибка Пароль: ${serverErrors.password[0]}`);
+                    toast.error(`Ошибка Пароль: ${serverErrors.password[0]}`);
                 }else if (serverErrors.detail) {
-                    alert(`Неверный пароль!`);
+                    toast.error(`Неверный пароль!`);
                 } else {
                     // если ошибка общая или непонятная - глупая
-                    alert("Ошибка регистрации: " + JSON.stringify(serverErrors));
+                    toast.error("Ошибка регистрации: " + JSON.stringify(serverErrors));
                 }
             } else {
-                alert("Произошла неизвестная ошибка сети");
+                toast.error("Произошла неизвестная ошибка сети");
             }
         }
     }

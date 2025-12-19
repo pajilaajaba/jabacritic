@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from django.db.models import Avg
+from jabacritic.settings import AUTH_USER_MODEL
 
 class Genre(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -44,12 +45,9 @@ class Game(models.Model):
     genres = models.ManyToManyField(Genre, related_name='games')
     platforms = models.ManyToManyField(Platform, related_name='games')
     
-    @property #вычисляемое свойство - если оставить его как поле а не проперти, то придется каждый раз менять таблицу
-    def average_rating(self):
-        #берет все отзывы об игре через self и считает среднее
-        ratings = self.reviews.all().aggregate(Avg('rating'))['rating__avg']
-        
-        if ratings is None:
-            return 0
-        
-        return round(ratings, 1)
+    favorites = models.ManyToManyField(
+    AUTH_USER_MODEL, # Ссылка на User
+    related_name='favorite_games', # Чтобы у юзера искать user.favorite_games
+    blank=True
+)
+    

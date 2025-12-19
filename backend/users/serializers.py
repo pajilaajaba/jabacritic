@@ -2,8 +2,7 @@ from wsgiref import validate
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-
-import users
+from games.serializers import GameListSerializer
 
 
 User = get_user_model()
@@ -11,15 +10,25 @@ User = get_user_model()
 
 #сериализатор для чтения, отображения пользователя - НЕ ДЛЯ СОЗДАНИЯ
 class UserSerializer(serializers.ModelSerializer):
+    favorite_games = GameListSerializer(many=True, read_only=True)
+    # 1. Меняем на MethodField
+    user_reviews = serializers.SerializerMethodField() 
     
     class Meta:
         model = User
         fields = [
             'id', 'username', 'email' , 'is_critic', 
-            'description', 'avatar', 'date_joined'
+            'description', 'avatar', 'date_joined',
+            'favorite_games', 'user_reviews'
         ]
         read_only_fields = ['id', 'date_joined']
         
+    def get_user_reviews(self, obj):
+        from reviews.serializers import SimpleReviewSerializer
+        
+        reviews = obj.reviews.all()
+        
+        return SimpleReviewSerializer(reviews, many=True).data
         
         
         
